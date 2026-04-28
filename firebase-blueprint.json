@@ -1,0 +1,45 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Global user identity and role assignment.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["SUPER_ADMIN", "CLIENT_ADMIN", "CLIENT_USER"] },
+        "displayName": { "type": "string" },
+        "clientId": { "type": "string" },
+        "suspended": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["uid", "email", "role", "suspended"]
+    },
+    "Project": {
+      "title": "Agency Project",
+      "description": "Managed infrastructure build tracking.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clientId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "REVIEW", "COMPLETED"] },
+        "progress": { "type": "number" },
+        "manager": { "type": "string" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["clientId", "title", "status", "progress", "manager"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles with role-based access."
+    },
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Managed build records."
+    }
+  }
+}

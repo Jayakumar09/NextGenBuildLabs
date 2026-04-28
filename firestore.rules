@@ -1,0 +1,82 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // -------------------------------------------------------------------------
+    // GLOBAL HELPERS
+    // -------------------------------------------------------------------------
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
+    function getUserRole(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data.role;
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && getUserRole(request.auth.uid) == 'SUPER_ADMIN';
+    }
+
+    function isSuspended() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.suspended == true;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // -------------------------------------------------------------------------
+    // COLLECTIONS
+    // -------------------------------------------------------------------------
+
+    // Catch-all deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isSuperAdmin());
+      
+      // Auto-profile creation for new users
+      allow create: if isSignedIn() && request.auth.uid == userId && (
+        incoming().role == 'CLIENT_USER' && 
+        incoming().suspended == false &&
+        incoming().uid == userId
+      );
+
+      // Super Admins can manage all roles/suspensions
+      allow update: if isSuperAdmin() || (
+        isSignedIn() && request.auth.uid == userId && !isSuspended() &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName'])
+      );
+    }
+
+    // Projects Collection
+    match /projects/{projectId} {
+      allow read: if isSignedIn() && !isSuspended() && (
+        isSuperAdmin() || 
+        resource.data.clientId == request.auth.uid ||
+        resource.data.clientId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.clientId
+      );
+
+      allow create: if isSuperAdmin();
+
+      allow update: if isSuperAdmin();
+      
+      // Clients can only read progress, not modify projects.
+      // Modifying is reserved for NextGen Build Labs (Super Admin).
+      allow delete: if isSuperAdmin();
+    }
+  }
+}
