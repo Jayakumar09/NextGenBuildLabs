@@ -7,13 +7,13 @@
       "properties": {
         "uid": { "type": "string" },
         "email": { "type": "string", "format": "email" },
-        "role": { "type": "string", "enum": ["SUPER_ADMIN", "CLIENT_ADMIN", "CLIENT_USER"] },
+        "role": { "type": "string", "enum": ["superadmin", "staff", "client"] },
         "displayName": { "type": "string" },
         "clientId": { "type": "string" },
-        "suspended": { "type": "boolean" },
+        "active": { "type": "string", "enum": ["active", "suspended", "inactive"] },
         "createdAt": { "type": "number" }
       },
-      "required": ["uid", "email", "role", "suspended"]
+      "required": ["uid", "email", "role", "active"]
     },
     "Project": {
       "title": "Agency Project",
@@ -26,10 +26,50 @@
         "description": { "type": "string" },
         "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "REVIEW", "COMPLETED"] },
         "progress": { "type": "number" },
+        "budget": { "type": "number" },
+        "deadline": { "type": "string" },
         "manager": { "type": "string" },
         "updatedAt": { "type": "number" }
       },
       "required": ["clientId", "title", "status", "progress", "manager"]
+    },
+    "Client": {
+      "title": "Agency Client",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string" },
+        "contactPerson": { "type": "string" },
+        "email": { "type": "string" },
+        "status": { "type": "string" }
+      }
+    },
+    "Lead": {
+      "title": "Sales Lead",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "source": { "type": "string" },
+        "status": { "type": "string" }
+      }
+    },
+    "Invoice": {
+      "title": "Financial Invoice",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string" }
+      }
+    },
+    "Ticket": {
+      "title": "Support Ticket",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "priority": { "type": "string" },
+        "status": { "type": "string" }
+      }
     }
   },
   "firestore": {
@@ -40,6 +80,35 @@
     "/projects/{projectId}": {
       "schema": "Project",
       "description": "Managed build records."
+    },
+    "/clients/{clientId}": {
+      "schema": "Client",
+      "description": "Company management."
+    },
+    "/leads/{leadId}": {
+      "schema": "Lead",
+      "description": "CRM tracking."
+    },
+    "/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Financial records."
+    },
+    "/tickets/{ticketId}": {
+      "schema": "Ticket",
+      "description": "Support system."
+    },
+    "/notifications/{notifId}": {
+      "schema": {
+        "title": "System Notification",
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "message": { "type": "string" },
+          "type": { "type": "string" },
+          "createdAt": { "type": "number" }
+        }
+      },
+      "description": "System alerts and notifications."
     }
   }
 }

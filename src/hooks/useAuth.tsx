@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../services/firebase';
+import { auth, db, handleFirestoreError, OperationType } from '../services/firebase';
 import { UserProfile, UserRole } from '../types';
 
 interface AuthContextType {
@@ -32,26 +32,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(firebaseUser);
       
       if (firebaseUser) {
-        // Fetch or create user profile
-        const profileRef = doc(db, 'users', firebaseUser.uid);
-        const profileSnap = await getDoc(profileRef);
+        try {
+          // Fetch or create user profile
+          const profileRef = doc(db, 'users', firebaseUser.uid);
+          const profileSnap = await getDoc(profileRef);
 
-        if (profileSnap.exists()) {
-          const data = profileSnap.data() as UserProfile;
-          setProfile(data);
-        } else {
-          // Default role for new users - In practice, this would be invited
-          const isAgencyOwner = firebaseUser.email === 'jk2020.vtcc@gmail.com';
-          const newProfile: UserProfile = {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            role: isAgencyOwner ? UserRole.SUPER_ADMIN : UserRole.CLIENT_USER,
-            displayName: firebaseUser.displayName,
-            suspended: false,
-            createdAt: Date.now(),
-          };
-          await setDoc(profileRef, newProfile);
-          setProfile(newProfile);
+          if (profileSnap.exists()) {
+            const data = profileSnap.data() as UserProfile;
+            setProfile(data);
+          } else {
+            // Default role for new users
+            const isAgencyOwner = firebaseUser.email === 'jk2020.vtcc@gmail.com' || firebaseUser.email === 'admin@nextgenbuildlabs.com';
+            const newProfile: UserProfile = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              role: isAgencyOwner ? UserRole.SUPERADMIN : UserRole.CLIENT,
+              displayName: firebaseUser.email === 'admin@nextgenbuildlabs.com' ? 'Jayakumar' : firebaseUser.displayName,
+              active: 'active',
+              createdAt: Date.now(),
+            };
+            await setDoc(profileRef, newProfile);
+            setProfile(newProfile);
+          }
+        } catch (error) {
+          // We still want to stop loading even on error, but we log the specific Firestore error
+          setLoading(false);
+          handleFirestoreError(error, OperationType.GET, 'users/' + firebaseUser.uid);
+          return;
         }
       } else {
         setProfile(null);
@@ -67,8 +74,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     profile,
     loading,
-    isAdmin: profile?.role === UserRole.SUPER_ADMIN || profile?.role === UserRole.CLIENT_ADMIN,
-    isSuperAdmin: profile?.role === UserRole.SUPER_ADMIN,
+    isAdmin: profile?.role === UserRole.SUPERADMIN || profile?.role === UserRole.STAFF,
+    isSuperAdmin: profile?.role === UserRole.SUPERADMIN,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

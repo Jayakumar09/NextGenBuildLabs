@@ -20,11 +20,15 @@ service cloud.firestore {
     }
 
     function isSuperAdmin() {
-      return isSignedIn() && getUserRole(request.auth.uid) == 'SUPER_ADMIN';
+      return isSignedIn() && getUserRole(request.auth.uid) == 'superadmin';
     }
 
-    function isSuspended() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.suspended == true;
+    function isStaff() {
+      return isSignedIn() && getUserRole(request.auth.uid) == 'staff';
+    }
+
+    function isActive() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.active == 'active';
     }
 
     function incoming() {
@@ -44,39 +48,73 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Health Check / Handshake (Exempt from strict catch-all)
+    match /test/connection {
+      allow read: if true;
+    }
+
     // Users Collection
     match /users/{userId} {
-      allow read: if isSignedIn() && (request.auth.uid == userId || isSuperAdmin());
+      allow read: if isSignedIn() && (request.auth.uid == userId || isSuperAdmin() || isStaff());
       
       // Auto-profile creation for new users
       allow create: if isSignedIn() && request.auth.uid == userId && (
-        incoming().role == 'CLIENT_USER' && 
-        incoming().suspended == false &&
+        (incoming().role == 'client' || (incoming().role == 'superadmin' && request.auth.token.email in ['jk2020.vtcc@gmail.com', 'admin@nextgenbuildlabs.com'])) && 
+        incoming().active == 'active' &&
         incoming().uid == userId
       );
 
-      // Super Admins can manage all roles/suspensions
+      // Admins manage state
       allow update: if isSuperAdmin() || (
-        isSignedIn() && request.auth.uid == userId && !isSuspended() &&
+        isSignedIn() && request.auth.uid == userId && isActive() &&
         incoming().diff(existing()).affectedKeys().hasOnly(['displayName'])
       );
+    }
+    
+    // Explicitly allow Admins to list the users collection
+    match /users {
+      allow list: if isSuperAdmin() || isStaff();
     }
 
     // Projects Collection
     match /projects/{projectId} {
-      allow read: if isSignedIn() && !isSuspended() && (
-        isSuperAdmin() || 
-        resource.data.clientId == request.auth.uid ||
-        resource.data.clientId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.clientId
+      allow read: if isSignedIn() && isActive() && (
+        isSuperAdmin() || isStaff() ||
+        resource.data.clientId == request.auth.uid
       );
+      allow create, update, delete: if isSuperAdmin() || isStaff();
+    }
 
-      allow create: if isSuperAdmin();
+    // Clients Collection
+    match /clients/{clientId} {
+      allow read: if isSignedIn() && (isSuperAdmin() || isStaff() || request.auth.uid == clientId);
+      allow create, update, delete: if isSuperAdmin() || isStaff();
+    }
 
-      allow update: if isSuperAdmin();
-      
-      // Clients can only read progress, not modify projects.
-      // Modifying is reserved for NextGen Build Labs (Super Admin).
-      allow delete: if isSuperAdmin();
+    // Leads Collection (CRM)
+    match /leads/{leadId} {
+      allow read, create, update, delete: if isSuperAdmin() || isStaff();
+      // Public contact form can create leads
+      allow create: if true; 
+    }
+
+    // Invoices Collection (Financials)
+    match /invoices/{invoiceId} {
+      allow read: if isSignedIn() && (isSuperAdmin() || isStaff() || resource.data.clientId == request.auth.uid);
+      allow create, update, delete: if isSuperAdmin();
+    }
+
+    // Tickets Collection (Support)
+    match /tickets/{ticketId} {
+      allow read: if isSignedIn() && (isSuperAdmin() || isStaff() || resource.data.clientId == request.auth.uid);
+      allow create: if isSignedIn() && isActive();
+      allow update, delete: if isSuperAdmin() || isStaff() || (isSignedIn() && isActive() && resource.data.clientId == request.auth.uid);
+    }
+
+    // Notifications (New)
+    match /notifications/{notifId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSuperAdmin();
     }
   }
 }

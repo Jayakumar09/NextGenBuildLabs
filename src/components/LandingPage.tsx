@@ -73,6 +73,14 @@ const LandingPage = () => {
               Client Login
             </button>
           </div>
+          <div className="mt-8 flex flex-col items-center">
+            <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest mb-2">Agency Admin Demo</p>
+            <div className="flex gap-4 p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl">
+               <div className="text-[10px]"><span className="text-zinc-500">EMAIL:</span> <span className="text-zinc-300 select-all">admin@nextgenbuildlabs.com</span></div>
+               <div className="w-px h-3 bg-zinc-800" />
+               <div className="text-[10px]"><span className="text-zinc-500">PASS:</span> <span className="text-zinc-300">secure_demo_2026</span></div>
+            </div>
+          </div>
         </motion.div>
       </section>
 
