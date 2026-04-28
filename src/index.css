@@ -1,1 +1,31 @@
 @import "tailwindcss";
+
+@layer base {
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  @media (min-width: 1600px) {
+    html {
+      font-size: 18px;
+    }
+  }
+
+  @media (min-width: 1920px) {
+    html {
+      font-size: 20px;
+    }
+  }
+
+  body {
+    @apply bg-zinc-950 text-zinc-100;
+  }
+}
+
+@theme {
+  --spacing-clamp-sm: clamp(1rem, 2vw, 1.5rem);
+  --spacing-clamp-md: clamp(1.5rem, 3vw, 2.5rem);
+  --spacing-clamp-lg: clamp(2rem, 5vw, 4rem);
+}
