@@ -316,29 +316,43 @@ const Dashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-grow p-[var(--spacing-clamp-md)] lg:p-8 overflow-y-auto w-full max-w-[1650px] mx-auto">
-        <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
+      <main className="flex-grow p-[var(--spacing-clamp-md)] lg:p-8 overflow-y-auto w-full max-w-[1750px] mx-auto">
+        <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
             <div className="max-w-3xl">
-                <h1 className="text-3xl lg:text-4xl font-black tracking-tighter mb-1.5 text-white leading-tight">
+                <div className="flex items-center gap-3 mb-3">
+                    <span className="flex h-2 w-2 relative">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em] italic">Systems Operational</span>
+                </div>
+                <h1 className="text-3xl lg:text-5xl font-black tracking-tighter mb-2 text-white leading-tight">
                     {isSuperAdmin ? 'Global Operations Control' : `Systems Online, ${profile?.displayName?.split(' ')[0] || 'User'}`}
                 </h1>
-                <p className="text-zinc-500 text-sm lg:text-base font-medium leading-tight">
+                <p className="text-zinc-500 text-sm lg:text-lg font-medium leading-tight max-w-xl">
                     {isSuperAdmin 
                         ? 'Unified intelligence interface for infrastructure and client logistics.' 
                         : 'Secure multi-tenant portal for build visibility and management.'}
                 </p>
             </div>
-            {isSuperAdmin && (
-                <motion.button 
-                  whileHover={{ scale: 1.02 }}
-                  animate={{ boxShadow: ['0 0 0px rgba(99,102,241,0)', '0 0 20px rgba(99,102,241,0.2)', '0 0 0px rgba(99,102,241,0)'] }}
-                  transition={{ duration: 2.5, repeat: Infinity }}
-                  onClick={() => setShowModal(true)}
-                  className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-[0.2em] py-3.5 px-6 rounded-xl transition-all shadow-xl shadow-indigo-500/20 active:scale-95 whitespace-nowrap min-w-[180px]"
-                >
-                    <Plus className="w-5 h-5 shrink-0" /> New Project
-                </motion.button>
-            )}
+            <div className="flex items-center gap-4">
+                <div className="hidden sm:flex flex-col items-end mr-4">
+                    <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-1">Last Update Sync</span>
+                    <span className="text-xs font-bold text-white leading-none">0.05s ago</span>
+                </div>
+                {isSuperAdmin && (
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      animate={{ boxShadow: ['0 0 0px rgba(99,102,241,0)', '0 0 30px rgba(99,102,241,0.3)', '0 0 0px rgba(99,102,241,0)'] }}
+                      transition={{ duration: 2.5, repeat: Infinity }}
+                      onClick={() => setShowModal(true)}
+                      className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-[0.2em] py-4 px-8 rounded-2xl transition-all shadow-xl shadow-indigo-500/20 active:scale-95 whitespace-nowrap"
+                    >
+                        <Plus className="w-5 h-5 shrink-0" /> New Project
+                    </motion.button>
+                )}
+            </div>
         </header>
 
         {/* Modal - New Project Form */}
@@ -419,85 +433,114 @@ const Dashboard = () => {
         )}
 
         {/* Status Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
             {[
                 { 
-                  label: isSuperAdmin ? 'Capital' : 'Investment', 
+                  label: isSuperAdmin ? 'Net Capital' : 'Investment Value', 
                   value: `$${totalRevenue.toLocaleString()}`, 
                   icon: CircleDollarSign, 
                   color: 'text-indigo-400',
-                  sub: 'Verified Assets'
+                  sub: 'Verified Assets',
+                  trend: '+12.4%'
                 },
                 { 
-                  label: isSuperAdmin ? 'Portfolio' : 'Infrastructure', 
+                  label: isSuperAdmin ? 'Portfolio Strength' : 'Infrastructure Nodes', 
                   value: isSuperAdmin ? clients.length : activeBuildsCount, 
                   icon: isSuperAdmin ? Briefcase : Box, 
                   color: 'text-emerald-400',
-                  sub: isSuperAdmin ? 'Active Entities' : `${projects.length} Nodes`
+                  sub: isSuperAdmin ? 'Active Entities' : `${projects.length} Nodes`,
+                  trend: 'Optimal'
                 },
                 { 
-                  label: isSuperAdmin ? 'Leads' : 'Payments', 
+                  label: isSuperAdmin ? 'Pipeline Growth' : 'Settlement Queue', 
                   value: isSuperAdmin ? newLeadsCount : `$${pendingPayments.toLocaleString()}`, 
                   icon: isSuperAdmin ? Target : Shield, 
                   color: isSuperAdmin ? 'text-amber-400' : 'text-red-400',
-                  sub: isSuperAdmin ? 'Active Growth' : 'Settlement'
+                  sub: isSuperAdmin ? 'Active Growth' : 'Pending Clearance',
+                  trend: '-2.1%'
                 },
                 { 
-                  label: 'Latency', 
+                  label: 'System Latency', 
                   value: '0.04ms', 
-                  icon: Activity, 
+                  icon: Terminal, 
                   color: 'text-sky-400',
-                  sub: 'Peak'
+                  sub: 'Peak Performance',
+                  trend: 'Stable'
                 },
             ].map((stat, i) => (
                 <motion.div 
-                    whileHover={{ y: -4 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    whileHover={{ y: -6, backgroundColor: 'rgba(24, 24, 27, 0.8)' }}
                     key={i} 
-                    className="p-6 rounded-[2rem] bg-zinc-900 border border-zinc-800/80 hover:border-indigo-500/20 hover:bg-zinc-900 transition-all flex flex-col shadow-xl shadow-black/40 group overflow-hidden"
+                    className="p-8 rounded-[2.5rem] bg-zinc-900 border border-zinc-800/80 hover:border-indigo-500/30 transition-all flex flex-col shadow-2xl shadow-black group overflow-hidden relative"
                 >
-                    <div className="flex items-center gap-4 mb-2">
-                        <div className={`p-2.5 rounded-xl bg-zinc-950 border border-white/5 ${stat.color} shadow-inner group-hover:scale-110 transition-transform`}>
-                            <stat.icon className="w-5 h-5" />
-                        </div>
-                        <div className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em]">{stat.label}</div>
+                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <stat.icon className="w-20 h-20" />
                     </div>
-                    <div className="flex items-baseline justify-between gap-2 overflow-hidden">
-                      <div className="text-3xl font-black text-white tracking-tighter truncate">{stat.value}</div>
-                      <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest shrink-0">{stat.sub}</div>
+                    <div className="flex items-center gap-4 mb-4 relative z-10">
+                        <div className={`p-3 rounded-2xl bg-zinc-950 border border-white/5 ${stat.color} shadow-inner group-hover:scale-110 transition-transform duration-500`}>
+                            <stat.icon className="w-6 h-6" />
+                        </div>
+                        <div className="flex flex-col">
+                            <div className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em] leading-none mb-1">{stat.label}</div>
+                            <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{stat.sub}</div>
+                        </div>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-2 overflow-hidden relative z-10">
+                      <div className="text-4xl font-black text-white tracking-tighter truncate">{stat.value}</div>
+                      <div className={`text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded-lg bg-white/5 ${stat.trend.startsWith('+') ? 'text-emerald-400' : stat.trend === 'Optimal' || stat.trend === 'Stable' ? 'text-indigo-400' : 'text-zinc-500'}`}>
+                        {stat.trend}
+                      </div>
                     </div>
                 </motion.div>
             ))}
         </div>
 
         {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 text-left">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 text-left">
             {/* Revenue Trend - Left 2 columns */}
-            <div className="xl:col-span-2 space-y-6">
+            <div className="xl:col-span-2 space-y-8">
                 <motion.section 
-                    whileHover={{ y: -4, boxShadow: '0 20px 40px -20px rgba(0,0,0,0.4)' }}
-                    className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-6 lg:p-8 shadow-2xl"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 lg:p-10 shadow-2xl relative overflow-hidden"
                 >
-                    <div className="flex items-center justify-between mb-8">
+                    <div className="absolute top-0 right-0 p-10 opacity-[0.02] pointer-events-none">
+                        <TrendingUp className="w-80 h-80 text-white" />
+                    </div>
+                    <div className="flex items-center justify-between mb-10 relative z-10">
                         <div>
-                            <h2 className="text-xl font-black tracking-tighter text-white uppercase tracking-widest leading-none">Revenue Pulse</h2>
-                            <p className="text-zinc-500 text-sm mt-1.5 font-medium leading-none">Real-time financial telemetry from transaction cycles.</p>
+                            <h2 className="text-2xl font-black tracking-tighter text-white uppercase tracking-widest leading-none">Revenue Intelligence</h2>
+                            <p className="text-zinc-500 text-base mt-2 font-medium leading-none">Real-time financial telemetry from active builds and cycles.</p>
                         </div>
-                        <div className="flex items-center gap-2 text-indigo-400 text-[10px] font-black uppercase tracking-tighter">
-                            <TrendingUp className="w-4 h-4" /> Momentum
+                        <div className="flex items-center gap-4">
+                            <div className="hidden sm:flex items-center gap-6 mr-4">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-indigo-500" />
+                                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Revenue</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Build Vol.</span>
+                                </div>
+                            </div>
+                            <button className="text-[10px] font-black text-indigo-400 hover:text-white transition-all uppercase tracking-[0.2em] border border-zinc-800 hover:border-indigo-500/40 px-5 py-2.5 rounded-xl bg-zinc-950">Scale: 7D</button>
                         </div>
                     </div>
-                    <div className={`w-full relative transition-all duration-500 ${chartData.length === 0 ? 'h-[100px]' : 'h-[210px] lg:h-[260px]'}`}>
+                    <div className={`w-full relative transition-all duration-500 ${chartData.length === 0 ? 'h-[150px]' : 'h-[300px] lg:h-[350px]'}`}>
                         {chartData.length === 0 ? (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center text-zinc-500 bg-zinc-950/20 rounded-2xl border border-zinc-800/50 border-dashed">
-                                <Activity className="w-6 h-6 mb-2 text-indigo-500/30" />
-                                <p className="text-[11px] font-black uppercase tracking-[0.4em] text-zinc-400">Telemetry Standby</p>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-zinc-500 bg-zinc-950/20 rounded-[2rem] border-2 border-zinc-800 border-dashed">
+                                <Activity className="w-10 h-10 mb-4 text-indigo-500/20" />
+                                <p className="text-xs font-black uppercase tracking-[0.4em] text-zinc-600">Telemetry Isolation Standby</p>
                             </div>
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={chartData}>
                                     <defs>
                                         <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
                                             <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                                         </linearGradient>
                                         <linearGradient id="colorVol" x1="0" y1="0" x2="0" y2="1">
@@ -509,61 +552,57 @@ const Dashboard = () => {
                                     <XAxis 
                                         dataKey="name" 
                                         stroke="#52525b" 
-                                        fontSize={11} 
+                                        fontSize={12} 
                                         tickLine={false} 
                                         axisLine={false} 
-                                        tick={{ fontWeight: 600 }}
+                                        tick={{ fontWeight: 700 }}
+                                        dy={10}
                                     />
                                     <YAxis 
                                         yId="left"
                                         stroke="#52525b" 
-                                        fontSize={11} 
+                                        fontSize={12} 
                                         tickLine={false} 
                                         axisLine={false} 
                                         tickFormatter={(value) => `$${value}`}
-                                        tick={{ fontWeight: 600 }}
-                                    />
-                                    <YAxis 
-                                        yId="right"
-                                        orientation="right"
-                                        stroke="#52525b" 
-                                        fontSize={11} 
-                                        tickLine={false} 
-                                        axisLine={false} 
-                                        tick={{ fontWeight: 600 }}
+                                        tick={{ fontWeight: 700 }}
+                                        dx={-10}
                                     />
                                     <Tooltip 
                                         contentStyle={{ 
                                             backgroundColor: '#18181b', 
                                             border: '1px solid #3f3f46', 
-                                            borderRadius: '16px',
-                                            padding: '12px 16px',
-                                            boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
+                                            borderRadius: '24px',
+                                            padding: '16px 20px',
+                                            boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.5)'
                                         }}
-                                        itemStyle={{ fontSize: '13px', fontWeight: 'bold' }}
+                                        itemStyle={{ fontSize: '14px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                                        labelStyle={{ color: '#a1a1aa', fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.1em' }}
                                     />
                                     <Area 
                                         yId="left"
                                         type="monotone" 
                                         dataKey="revenue" 
-                                        name="Revenue"
+                                        name="Volume Status"
                                         stroke="#6366f1" 
-                                        strokeWidth={3}
+                                        strokeWidth={4}
                                         fillOpacity={1} 
                                         fill="url(#colorRev)"
                                         isAnimationActive={true}
+                                        animationDuration={2000}
                                     />
                                     <Area 
                                         yId="right"
-                                        type="monotone" 
+                                        type="stepAfter" 
                                         dataKey="volume" 
-                                        name="Project Volume"
+                                        name="Build Points"
                                         stroke="#10b981" 
                                         strokeWidth={2}
-                                        strokeDasharray="5 5"
+                                        strokeDasharray="8 8"
                                         fillOpacity={1} 
                                         fill="url(#colorVol)" 
                                         isAnimationActive={true}
+                                        animationDuration={3000}
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
@@ -571,156 +610,139 @@ const Dashboard = () => {
                     </div>
                 </motion.section>
 
-                {/* Active Projects List */}
-                <motion.section 
-                    whileHover={{ y: -4, boxShadow: '0 20px 40px -20px rgba(99,102,241,0.15)' }}
-                    className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-6 shadow-2xl"
-                >
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 className="text-xl font-black tracking-tighter text-white uppercase tracking-widest leading-none">Active Builds</h2>
-                            <p className="text-zinc-600 text-[10px] mt-2 font-bold tracking-widest uppercase leading-none">Infrastructure Status</p>
+                {/* Active Build Status Tiles */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <motion.section 
+                        whileHover={{ y: -4 }}
+                        className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 shadow-2xl"
+                    >
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-sm font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
+                                <Box className="w-5 h-5 text-indigo-500" /> Active Deployments
+                            </h3>
+                            <span className="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-[10px] font-black text-indigo-400 border border-indigo-500/20">{projects.length}</span>
                         </div>
-                        <button className="text-[10px] font-black text-indigo-500 hover:text-indigo-400 transition-colors uppercase tracking-[0.2em] bg-indigo-500/5 px-4 py-2 rounded-lg border border-indigo-500/10 hover:border-indigo-500/30">Registry</button>
-                    </div>
-                    <div className="space-y-4">
-                        {projects.length === 0 ? (
-                            <div className="py-6 text-center bg-zinc-950/40 rounded-[2rem] border-2 border-dashed border-zinc-800 group hover:border-indigo-500/30 transition-all min-h-[70px] flex flex-col items-center justify-center">
-                                <h4 className="text-[11px] text-zinc-300 font-extrabold mb-1 uppercase tracking-[0.2em]">Infrastructure Idle</h4>
-                                <button 
-                                    onClick={() => navigate(isSuperAdmin ? '/admin' : '#')}
-                                    className="text-[9px] text-indigo-400/80 font-black uppercase tracking-widest hover:text-indigo-300 transition-colors"
-                                >
-                                    {isSuperAdmin ? 'Deploy Node' : 'Request Connection'} →
-                                </button>
-                            </div>
-                        ) : (
-                            projects
-                                .filter(p => p.status !== 'COMPLETED')
-                                .slice(0, 4)
-                                .map((p, pIdx) => (
-                                <motion.div 
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: pIdx * 0.1 }}
-                                    key={p.id} 
-                                    className="p-5 bg-zinc-950/50 border border-zinc-800 rounded-2xl group hover:border-indigo-500/40 hover:bg-zinc-950 transition-all flex flex-col md:flex-row md:items-center justify-between shadow-xl shadow-black/20 gap-4"
-                                >
+                        <div className="space-y-4">
+                            {projects.slice(0, 3).map((p, i) => (
+                                <div key={p.id} className="flex items-center justify-between gap-4 p-4 bg-zinc-950/40 border border-zinc-800 rounded-2xl hover:border-indigo-500/30 transition-all group">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/10 to-indigo-500/5 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 group-hover:rotate-12 transition-transform duration-500">
-                                            <Terminal className="w-5 h-5" />
-                                        </div>
+                                        <div className="w-[3px] h-8 bg-indigo-500/40 rounded-full group-hover:bg-indigo-500 transition-colors" />
                                         <div>
-                                            <h4 className="text-base font-black text-white group-hover:text-indigo-300 transition-colors uppercase tracking-tight leading-none mb-1.5">{p.title}</h4>
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">${p.budget.toLocaleString()}</span>
-                                                <span className="w-1 h-1 rounded-full bg-indigo-500/40 animate-pulse" />
-                                                <span className={`text-[10px] font-black uppercase tracking-widest ${
-                                                    p.status === 'COMPLETED' ? 'text-emerald-500' : 'text-amber-500'
-                                                }`}>{p.status.replace('_', ' ')}</span>
-                                            </div>
+                                            <div className="text-xs font-black text-white uppercase tracking-tight mb-0.5">{p.title}</div>
+                                            <div className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">{p.status}</div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center justify-between md:justify-end gap-6 flex-grow">
-                                        <div className="w-full md:w-40">
-                                            <div className="flex justify-between items-center mb-1.5">
-                                                <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em]">SLA Integrity</span>
-                                                <span className="text-[9px] font-black text-white">{p.progress}%</span>
-                                            </div>
-                                            <div className="h-1.5 w-full bg-zinc-800/50 rounded-full overflow-hidden border border-white/5">
-                                                <motion.div 
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: `${p.progress}%` }}
-                                                    transition={{ duration: 1.5, ease: "easeOut" }}
-                                                    className="h-full bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full" 
-                                                />
-                                            </div>
+                                    <div className="text-right">
+                                        <div className="text-xs font-black text-indigo-400 mb-1">{p.progress}%</div>
+                                        <div className="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                                            <div className="h-full bg-indigo-500" style={{ width: `${p.progress}%` }} />
                                         </div>
-                                        <button className="p-2 text-zinc-600 hover:text-white transition-all hover:bg-zinc-800 rounded-lg">
-                                            <ArrowRight className="w-4 h-4" />
-                                        </button>
                                     </div>
-                                </motion.div>
-                                ))
-                        )}
-                    </div>
-                </motion.section>
+                                </div>
+                            ))}
+                            {projects.length === 0 && <p className="text-center py-4 text-zinc-600 text-xs font-bold uppercase tracking-widest italic">No active deployments found.</p>}
+                        </div>
+                    </motion.section>
+
+                    <motion.section 
+                        whileHover={{ y: -4 }}
+                        className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 shadow-2xl"
+                    >
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-sm font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
+                                <Activity className="w-5 h-5 text-emerald-500" /> System Metrics
+                            </h3>
+                            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-[8px] font-black text-emerald-500 uppercase tracking-widest border border-emerald-500/20">Optimal</span>
+                        </div>
+                        <div className="space-y-6">
+                            {[
+                                { label: 'CPU Utilization', value: '14.2%', progress: 14, color: 'bg-emerald-500' },
+                                { label: 'Memory Buffer', value: '2.8 GB', progress: 42, color: 'bg-indigo-500' },
+                                { label: 'Inbound Traffic', value: '412 Req/s', progress: 68, color: 'bg-sky-500' },
+                            ].map((m, i) => (
+                                <div key={i}>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{m.label}</span>
+                                        <span className="text-xs font-black text-white">{m.value}</span>
+                                    </div>
+                                    <div className="h-1.5 w-full bg-zinc-950 rounded-full overflow-hidden border border-zinc-800">
+                                        <motion.div 
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${m.progress}%` }}
+                                            className={`h-full ${m.color}`} 
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.section>
+                </div>
             </div>
 
-            {/* Sidebar Stats & Recent Activity */}
-            <div className="space-y-6">
-                {/* Pending Invoices */}
+            {/* Sidebar Columns */}
+            <div className="space-y-8">
+                {/* Communication Terminal */}
                 <motion.section 
-                    whileHover={{ y: -4, boxShadow: '0 20px 40px -20px rgba(0,0,0,0.4)' }}
-                    className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-6 shadow-2xl min-h-[120px] flex flex-col"
+                    whileHover={{ y: -4 }}
+                    className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden"
                 >
-                    <h3 className="text-[10px] font-black mb-4 flex items-center justify-between text-white uppercase tracking-[0.2em]">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/5 via-transparent to-transparent pointer-events-none" />
+                    <h3 className="text-[10px] font-black mb-8 flex items-center justify-between text-white uppercase tracking-[0.3em] relative z-10">
                         <div className="flex items-center gap-3">
-                            <CircleDollarSign className="w-4 h-4 text-amber-500" /> Capital Queue
+                            <Terminal className="w-4 h-4 text-indigo-400" /> Interaction Log
                         </div>
-                        <motion.div 
-                            animate={{ opacity: [0.4, 1, 0.4] }} 
-                            transition={{ duration: 2, repeat: Infinity }}
-                            className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]" 
-                        />
+                        <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 2, repeat: Infinity }} className="text-indigo-500 font-bold text-[8px]">LIVE_FEED</motion.div>
                     </h3>
-                    <div className="space-y-3 flex-grow">
-                        {invoices.filter(i => i.status === 'PENDING').length === 0 ? (
-                            <div className="flex-grow flex items-center justify-center p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10 text-emerald-500 text-[9px] font-black text-center uppercase tracking-[0.3em]">
-                                ASSET_STABLE
-                            </div>
-                        ) : (
-                            invoices.filter(i => i.status === 'PENDING').slice(0, 3).map(inv => (
-                                <div key={inv.id} className="flex items-center justify-between p-3.5 rounded-xl bg-zinc-950 border border-zinc-800 group hover:border-amber-500/20 transition-all">
-                                    <div>
-                                        <div className="text-sm font-black text-white mb-0.5">${inv.amount.toLocaleString()}</div>
-                                        <div className="text-[8px] text-zinc-600 font-bold uppercase truncate w-24 tracking-wider">PID_{inv.id.slice(0, 8)}</div>
-                                    </div>
-                                    <span className="px-2 py-0.5 rounded-lg text-[8px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 tracking-widest">QUEUE</span>
+                    
+                    <div className="space-y-6 relative z-10">
+                        {notifications.length > 0 ? notifications.slice(0, 4).map((n, i) => (
+                            <div key={i} className="flex gap-4 group">
+                                <div className="mt-1 w-2 h-2 rounded-full bg-zinc-800 border border-zinc-700 shrink-0 group-hover:bg-indigo-500 transition-colors" />
+                                <div>
+                                    <div className="text-[10px] font-black text-white uppercase tracking-tight mb-1 group-hover:text-indigo-300 transition-colors">{n.title}</div>
+                                    <p className="text-[10px] text-zinc-600 font-medium leading-relaxed italic line-clamp-2">{n.message}</p>
+                                    <div className="text-[8px] text-zinc-700 mt-2 font-black uppercase tracking-widest">{new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                                 </div>
-                            ))
+                            </div>
+                        )) : (
+                            <div className="text-center py-10 opacity-20">
+                                <Activity className="w-10 h-10 mx-auto mb-4 text-zinc-600" />
+                                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 italic">No cycles recorded</p>
+                            </div>
                         )}
                     </div>
                 </motion.section>
 
-                {/* Activity Feed */}
+                {/* Secure Vault / Financials */}
                 <motion.section 
-                    whileHover={{ y: -4, boxShadow: '0 20px 40px -20px rgba(0,0,0,0.4)' }}
-                    className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-6 shadow-2xl"
+                    whileHover={{ y: -4 }}
+                    className="bg-zinc-950 border border-zinc-800 rounded-[2.5rem] p-8 shadow-2xl relative group overflow-hidden"
                 >
-                    <h3 className="text-[10px] font-black mb-5 flex items-center justify-between text-white uppercase tracking-[0.2em]">
-                        <div className="flex items-center gap-3">
-                            <Activity className="w-4 h-4 text-indigo-400" /> Intelligence
+                    <div className="absolute inset-0 bg-indigo-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    <div className="flex items-center justify-between mb-8 relative z-10">
+                        <h3 className="text-xs font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
+                            <Shield className="w-4 h-4 text-emerald-500" /> Asset Control
+                        </h3>
+                        <Settings className="w-4 h-4 text-zinc-800 group-hover:text-zinc-600 transition-colors" />
+                    </div>
+                    
+                    <div className="space-y-4 relative z-10">
+                        <div className="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-emerald-500/20 transition-all">
+                            <div className="flex justify-between items-center mb-3">
+                                <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Global Status</span>
+                                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic">SECURED</span>
+                            </div>
+                            <div className="text-2xl font-black text-white tracking-widest text-center py-2 border-y border-zinc-800/50 mb-3 bg-zinc-950/20">
+                                DASH_V2.0
+                            </div>
+                            <p className="text-[8px] text-zinc-600 uppercase tracking-widest font-black leading-relaxed text-center">
+                                Advanced multi-layered encryption protocol active for all client assets.
+                            </p>
                         </div>
-                        <motion.div 
-                            animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }} 
-                            transition={{ duration: 3, repeat: Infinity }}
-                            className="w-2 h-2 rounded-full border border-indigo-500" 
-                        />
-                    </h3>
-                    <div className="space-y-4 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-zinc-800 text-left">
-                        {notifications.slice(0, 5).map((notif, i) => (
-                            <div key={`notif-${i}`} className="relative pl-8 group">
-                                <div className={`absolute left-0 top-0.5 w-6 h-6 rounded-lg flex items-center justify-center z-10 border transition-all cursor-default ${
-                                    notif.type === 'error' ? 'bg-red-500/10 border-red-500/20' : 'bg-indigo-500/10 border-indigo-500/20'
-                                } shadow-lg shadow-black/20 group-hover:scale-110`}>
-                                    <Bell className={`w-3 h-3 ${notif.type === 'error' ? 'text-red-400' : 'text-indigo-400'}`} />
-                                </div>
-                                <div className="cursor-default">
-                                    <div className="text-xs font-black text-white group-hover:text-indigo-300 transition-colors uppercase tracking-tight leading-tight mb-1">{notif.title}</div>
-                                    <div className="text-[9px] text-zinc-500 font-medium leading-relaxed mb-2 italic line-clamp-1">{notif.message}</div>
-                                    <div className="text-[8px] text-zinc-700 font-black uppercase tracking-[0.2em] flex items-center gap-2">
-                                        <Clock className="w-3 h-3" /> {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                        {notifications.length === 0 && (
-                            <div className="py-6 text-center">
-                                <Activity className="w-5 h-5 text-zinc-800 mx-auto mb-2 opacity-20" />
-                                <p className="text-zinc-700 text-[8px] font-black uppercase tracking-[0.25em]">Standby...</p>
-                            </div>
-                        )}
+                        
+                        <button className="w-full py-4 bg-zinc-900 border border-zinc-800 hover:border-indigo-500/40 text-[10px] font-black text-zinc-500 hover:text-white transition-all uppercase tracking-[0.3em] rounded-xl flex items-center justify-center gap-2">
+                             Access Invoices <ArrowRight className="w-3 h-3" />
+                        </button>
                     </div>
                 </motion.section>
             </div>
