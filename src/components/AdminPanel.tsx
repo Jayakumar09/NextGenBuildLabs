@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType, auth } from '../services/firebase';
 import { UserProfile, Project, UserRole, Lead, ClientData, Invoice, Ticket } from '../types';
+import { seedDatabase } from '../services/seedData';
 import { 
   ShieldAlert, 
   Users, 
@@ -31,7 +32,9 @@ import {
   ExternalLink,
   MessageSquare,
   Bell,
-  LayoutDashboard
+  LayoutDashboard,
+  Database,
+  Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -40,6 +43,7 @@ const AdminPanel = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'users' | 'leads' | 'clients' | 'projects' | 'payments' | 'support' | 'staff' | 'notifications'>('users');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'IN_PROGRESS' | 'REVIEW' | 'COMPLETED'>('ALL');
+  const [isSeeding, setIsSeeding] = useState(false);
   
   // Data States
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -81,6 +85,10 @@ const AdminPanel = () => {
       onSnapshot(collection(db, 'projects'), (snapshot) => {
         setProjects(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)));
       }, (err) => handleFirestoreError(err, OperationType.LIST, 'projects')),
+
+      onSnapshot(collection(db, 'clients'), (snapshot) => {
+        setClients(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClientData)));
+      }, (err) => handleFirestoreError(err, OperationType.LIST, 'clients')),
       
       onSnapshot(collection(db, 'invoices'), (snapshot) => {
         setInvoices(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Invoice)));
@@ -146,6 +154,21 @@ const AdminPanel = () => {
     }
   };
 
+  const handleSeed = async () => {
+    if (confirm('Deploy simulation data to all nodes? This will add sample records for demonstration.')) {
+      setIsSeeding(true);
+      try {
+        await seedDatabase();
+        alert('Simulation data successfully injected.');
+      } catch (err) {
+        console.error(err);
+        alert('Seeding failed. See logs.');
+      } finally {
+        setIsSeeding(false);
+      }
+    }
+  };
+
   const totalRevenue = invoices.filter(i => i.status === 'PAID').reduce((acc, curr) => acc + curr.amount, 0);
   const pendingPayments = invoices.filter(i => i.status === 'PENDING').reduce((acc, curr) => acc + curr.amount, 0);
 
@@ -189,12 +212,24 @@ const AdminPanel = () => {
         <nav className="flex flex-col gap-2">
           <NavItem id="users" label="User Directory" icon={Users} />
           <NavItem id="leads" label="CRM Leads" icon={UserPlus} />
+          <NavItem id="clients" label="Agency Clients" icon={Briefcase} />
           <NavItem id="projects" label="Project Engine" icon={Layers} />
           <NavItem id="payments" label="Financial Ops" icon={CircleDollarSign} />
           <NavItem id="support" label="Support Desk" icon={Headphones} />
           <NavItem id="staff" label="Team Performance" icon={Activity} />
           <NavItem id="notifications" label="Alert Node" icon={Bell} />
         </nav>
+
+        <div className="mt-4">
+            <button 
+                onClick={handleSeed}
+                disabled={isSeeding}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/5 transition-all border border-emerald-500/20 hover:border-emerald-500/40 disabled:opacity-50"
+            >
+                {isSeeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
+                {isSeeding ? 'Injecting...' : 'Seed System Data'}
+            </button>
+        </div>
 
         <div className="mt-8 pt-8 border-t border-zinc-800">
           <button 
@@ -332,7 +367,7 @@ const AdminPanel = () => {
                       <tr className="border-b border-zinc-800 text-[10px] uppercase font-black text-zinc-600 tracking-widest">
                         <th className="px-8 py-4">Contact</th>
                         <th className="px-8 py-4">Source</th>
-                        <th className="px-8 py-4">Status</th>
+                        <th className="px-8 py-4 text-right">Age</th>
                         <th className="px-8 py-4 text-right">Managed</th>
                       </tr>
                     </thead>
@@ -340,17 +375,64 @@ const AdminPanel = () => {
                       {leads.map(l => (
                         <tr key={l.id} className="hover:bg-white/5 transition-all group">
                           <td className="px-8 py-5">
-                            <div className="text-sm font-bold text-white">{l.name}</div>
-                            <div className="text-xs text-zinc-500">{l.email}</div>
+                            <div className="text-sm font-bold text-white leading-none mb-1">{l.name}</div>
+                            <div className="text-xs text-zinc-500 font-mono">{l.email}</div>
                           </td>
                           <td className="px-8 py-5">
-                            <span className="text-[10px] font-bold text-zinc-400 bg-zinc-800 px-2 py-1 rounded uppercase">{l.source}</span>
+                            <span className="text-[10px] font-bold text-zinc-400 bg-zinc-800 px-2.5 py-1 rounded-lg uppercase tracking-wider">{l.source}</span>
                           </td>
-                          <td className="px-8 py-5">
-                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-tighter">{l.status}</span>
+                          <td className="px-8 py-5 text-right">
+                             <div className="text-[10px] font-black text-white">{Math.floor((Date.now() - (l.createdAt || Date.now())) / (1000 * 60 * 60 * 24))}D</div>
                           </td>
                           <td className="px-8 py-5 text-right">
                              <button onClick={() => deleteItem('leads', l.id)} className="p-2 text-zinc-600 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                 </table>
+               </div>
+            </div>
+          )}
+
+          {activeTab === 'clients' && (
+            <div>
+               <div className="p-8 border-b border-zinc-800 flex items-center justify-between">
+                  <h2 className="text-xl font-bold flex items-center gap-2"><Briefcase className="w-5 h-5 text-indigo-500" /> Agency Portfolio</h2>
+                  <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest">{clients.length} Registered Entities</div>
+               </div>
+               <div className="overflow-x-auto">
+                 <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-zinc-800 text-[10px] uppercase font-black text-zinc-600 tracking-widest">
+                        <th className="px-8 py-4">Company</th>
+                        <th className="px-8 py-4">Contact</th>
+                        <th className="px-8 py-4">Status</th>
+                        <th className="px-8 py-4 text-right">Managed</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-800/50">
+                      {clients.map(c => (
+                        <tr key={c.id} className="hover:bg-white/5 transition-all group">
+                          <td className="px-8 py-5">
+                            <div className="text-sm font-bold text-white mb-1 uppercase tracking-tight">{c.companyName}</div>
+                            <div className="text-[10px] text-zinc-500 font-black tracking-widest uppercase">{c.projectType}</div>
+                          </td>
+                          <td className="px-8 py-5">
+                            <div className="text-sm font-bold text-zinc-300 mb-0.5">{c.contactPerson}</div>
+                            <div className="text-[10px] text-zinc-500 font-mono">{c.email}</div>
+                          </td>
+                          <td className="px-8 py-5">
+                            <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.1em] border ${
+                              c.status === 'ACTIVE' 
+                              ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' 
+                              : 'border-red-500/30 text-red-500 bg-red-500/10'
+                            }`}>
+                              {c.status}
+                            </span>
+                          </td>
+                          <td className="px-8 py-5 text-right">
+                             <button onClick={() => deleteItem('clients', c.id)} className="p-2 text-zinc-600 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                           </td>
                         </tr>
                       ))}

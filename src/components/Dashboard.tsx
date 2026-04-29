@@ -11,7 +11,7 @@ import {
   getDocs
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../services/firebase';
-import { Project, UserRole, Invoice, Lead, Ticket, UserProfile } from '../types';
+import { Project, UserRole, Invoice, Lead, Ticket, UserProfile, ClientData } from '../types';
 import { 
   LogOut, 
   LayoutDashboard, 
@@ -35,7 +35,8 @@ import {
   Calendar,
   ChevronUp,
   CreditCard,
-  User as UserIcon
+  User as UserIcon,
+  Briefcase
 } from 'lucide-react';
 import { auth } from '../services/firebase';
 import { useNavigate } from 'react-router-dom';
@@ -55,6 +56,7 @@ const Dashboard = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [clients, setClients] = useState<ClientData[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [clientUsers, setClientUsers] = useState<UserProfile[]>([]);
@@ -113,6 +115,13 @@ const Dashboard = () => {
           : query(collection(db, 'notifications'), where('userId', '==', profile.uid), orderBy('createdAt', 'desc'), limit(10)),
         (snapshot) => setNotifications(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any))),
         (err) => handleFirestoreError(err, OperationType.LIST, 'notifications')
+      ),
+
+      // Clients
+      onSnapshot(
+        query(collection(db, 'clients'), limit(50)),
+        (snapshot) => setClients(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClientData))),
+        (err) => handleFirestoreError(err, OperationType.LIST, 'clients')
       )
     ];
 
@@ -420,11 +429,11 @@ const Dashboard = () => {
                   sub: 'Verified Assets'
                 },
                 { 
-                  label: 'Infrastructure', 
-                  value: activeBuildsCount, 
-                  icon: Box, 
+                  label: isSuperAdmin ? 'Portfolio' : 'Infrastructure', 
+                  value: isSuperAdmin ? clients.length : activeBuildsCount, 
+                  icon: isSuperAdmin ? Briefcase : Box, 
                   color: 'text-emerald-400',
-                  sub: `${projects.length} Nodes`
+                  sub: isSuperAdmin ? 'Active Entities' : `${projects.length} Nodes`
                 },
                 { 
                   label: isSuperAdmin ? 'Leads' : 'Payments', 
